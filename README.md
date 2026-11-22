@@ -2,6 +2,8 @@
 
 Daniel Fredriksen, Quantyra Inc. · [Manuscript PDF](manuscript.pdf) · [LaTeX source](manuscript.tex) · [ORCID](https://orcid.org/0009-0002-9123-7435)
 
+**Cite version 1.0.0.** [Version DOI 10.5281/zenodo.24435515](https://doi.org/10.5281/zenodo.24435515) · [All versions](https://doi.org/10.5281/zenodo.24435514)
+
 An explicitly written network of bounded-arity signed integer tensors can be evaluated with polynomially many unweighted counting queries. The number of wires in each query grows linearly with the number of original tensors, even if one coefficient occupies most of the input. The target predicates have logarithmic arity. The proof groups tensors before encoding their weights as counts and reconstructs integers at two levels.
 
 Assuming the [stated Boolean contraction theorem](https://github.com/openai/math/blob/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a/preprints/The-Exponential-Time-Hypothesis-is-False-October-25-2026/build/quantitative-reduction.tex), the reduction gives a deterministic subexponential-time, polynomial-space algorithm. In the circuit application, the exponential term depends on two-qubit gate count. The paper gives the fixed gate set, exact output representation and comparisons with previous time and space bounds.
