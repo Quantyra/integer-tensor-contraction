@@ -1,0 +1,29 @@
+{
+  "title": "Removing integer weights from Boolean tensor networks with a linear number of wires per query",
+  "upload_type": "publication",
+  "publication_type": "preprint",
+  "description": "A deterministic polynomial-time oracle reduction computes the exact contraction of explicitly given bounded-arity signed integer tensors using polynomially many unweighted Boolean counts. Each query has a linear number of wires and logarithmic arity. The construction uses two Chinese remainder reconstructions and one auxiliary binary counter per block of tensors. Under the cited Boolean contraction premise it gives exact subexponential-time contraction in polynomial bit space and an exact circuit simulation bound parameterized by the number of two-qubit gates.",
+  "creators": [
+    {
+      "name": "Fredriksen, Daniel",
+      "affiliation": "Quantyra Inc.",
+      "orcid": "0009-0002-9123-7435"
+    }
+  ],
+  "license": "CC-BY-4.0",
+  "version": "1.0.0",
+  "keywords": [
+    "tensor networks",
+    "weighted model counting",
+    "Chinese remainder theorem",
+    "quantum circuit simulation",
+    "space complexity"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.48550/arXiv.1612.05903",
+      "scheme": "doi",
+      "relation": "references"
+    }
+  ]
+}

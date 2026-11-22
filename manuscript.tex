@@ -1,0 +1,123 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1.02in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,microtype}
+\usepackage[hidelinks]{hyperref}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\bits}{\{0,1\}}
+\newcommand{\poly}{\operatorname{poly}}
+\title{Removing integer weights from Boolean tensor networks\\with a linear number of wires per query}
+\author{Daniel Fredriksen\\{\small Quantyra Inc., Las Vegas, Nevada, USA}\\
+{\small\href{https://orcid.org/0009-0002-9123-7435}{ORCID 0009-0002-9123-7435}}}
+\date{November 21, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+We prove an unconditional reduction for integer weights and derive conditional time bounds from an external counting theorem. A single entry of an integer tensor can have more bits than the network has wires. We give a deterministic polynomial-time oracle reduction from exact contraction of $N$ bounded-arity integer tensors on Boolean edges to unweighted Boolean counts. Each query has $O(N+1)$ wires, maximum arity $O(\log(N+2))$, and explicit tables. Two Chinese remainder reconstructions allow one short binary counter to serve an entire block of tensors. Assuming the stated Boolean contraction theorem of OpenAI, the reduction gives exact contraction in $\poly(F)2^{O((N+2)/\sqrt{\log_2(N+2)})}$ bit time and polynomial bit space for input length $F$. In a fixed circuit grammar the same exponent depends only on the number of two-qubit gates, even with arbitrarily long explicitly listed one-qubit words. We give a small example that distinguishes an inner count, its residue and the integer that must be reconstructed.
+\end{abstract}
+
+\section{What has to be preserved}
+Let $T_v$ be an integer table at each vertex of a finite multigraph. Each edge carries one bit, and its two incident ports receive the same value. For a closed network the desired integer is
+\begin{equation}
+ Z=\sum_{x\in\bits^E}\prod_{v=1}^{N}T_v(x|_v).
+ \label{eq:contraction}
+\end{equation}
+Here $E$ denotes the number of edges. All input arities are bounded by a fixed $d$ (a loop uses two ports), and $F$ includes the graph, port orders, isolated vertices and every signed binary entry. We take $F\ge 1$. Polynomial factors below may depend on $d$. An unweighted count has the same form with every table valued in $\{0,1\}$. Logs in the estimates have base two.
+
+Encoding a nonnegative weight as the number of legal assignments to auxiliary bits is a familiar technique in weighted model counting \cite{cfmv}. A separate counter for every large entry or factor can make the wire count depend on coefficient precision. This matters when a counting theorem charges the wires in its exponent and the full input length only polynomially. Signed weights also require exact cancellation, even when the final integer is small.
+
+\begin{theorem}\label{thm:reduction}
+There is a deterministic polynomial-time Turing reduction computing \eqref{eq:contraction} with polynomially many exact unweighted counting queries. Each query is a bipartite Boolean network with $O(N+1)$ wires and vertices, arity $O(\log(N+2))$, and explicit tables of size polynomial in $N+2$, constructible in time polynomial in $F$. Queries can be processed in sequence using polynomial space outside the oracle.
+\end{theorem}
+
+\section{The reduction}
+For each vertex put $B_v=\max(1,\lceil\log(1+\max_x |T_v(x)|)\rceil)$ and set $H=E+\sum_v B_v$. Then $|Z|\le 2^H$ and $H=O(F+N)$. The empty product has value one. If $N\le\lceil\log(F+2)\rceil$, enumerate the $2^E$ assignments directly. Since $E\le dN/2$, even this branch takes polynomial bit time in $F$. In the remaining branch, $\log(F+2)<N$. This switch pays for coefficient encodings of exceptional size.
+
+\paragraph{A small-modulus basis.}
+For an integer $a\ge 0$ set $m=4(a+2)$. For each prime $r\le m$, take its largest power at most $m$. These moduli are pairwise coprime, each is at most $m$, and their product $M$ exceeds $2^{a+1}$. Indeed $M=\operatorname{lcm}(1,\ldots,m)$. The factorial valuation formula expresses $v_r {m\choose j}$ as a sum of terms $\lfloor m/r^i\rfloor-\lfloor j/r^i\rfloor-\lfloor(m-j)/r^i\rfloor$, each zero or one, with at most $\lfloor\log_r m\rfloor$ nonzero terms. Thus every binomial coefficient divides $M$, and $M\ge 2^m/(m+1)>2^{a+1}$. Trial division, prime powers and CRT arithmetic on these integers take polynomial bit time in $a+2$.
+
+\paragraph{First reconstruction: reduce coefficient height.}
+Take the basis with $a=H$. For each of its moduli $q$, let $A_v$ be the table of least nonnegative representatives $T_v\bmod q$. Denote the \emph{integer} contraction of the $A_v$ by $Z_q$. Then
+\[
+ Z_q\equiv Z\pmod q,\qquad 0\le Z_q\le 2^E(q-1)^N < 2^{K},
+ \qquad K=1+E+N\lceil\log q\rceil .
+\]
+Since $N\le F$ up to the fixed encoding convention, $\log q=O(\log(F+2))=O(N)$ on this branch. Hence $K=O((N+1)^2)$. The outer reduction may change the integer answer substantially. Its representatives now define the input of a second reconstruction.
+
+\paragraph{Second reconstruction: shorten each counter.}
+Take the basis with $a=K$. An inner modulus $p$ is $O((N+1)^2)$. Partition the vertices in input order into consecutive blocks of size $\beta=\lceil\log(N+2)\rceil$, except for a possible final shorter block. For each block $D$ and assignment $z$ of its crossing edges, form
+\[
+ u_D(z)=\left[\sum_{\text{internal edge bits of }D}
+                  \prod_{v\in D} A_v(x|_v)\right]_p .
+\]
+Brackets mean the least nonnegative residue. The sum includes loop bits once each. There are at most $d\beta$ incident ports. Enumerating all internal and crossing bits and filling the resulting table costs polynomial time in $F$, uniformly over blocks and moduli. Modular multiplication throughout suffices.
+
+Introduce $b=\lceil\log p\rceil$ new private edges at each block. At their other ends put unrestricted unary predicates. On the block put the predicate $[y<u_D(z)]$, where $y$ is the unsigned integer encoded by the $b$ bits. For fixed $z$ this permits exactly $u_D(z)$ choices, also for $u_D(z)=0$. Consequently its unweighted count $C_{q,p}$ satisfies
+\begin{equation}
+ C_{q,p}=\sum_{z\text{ on all crossing edges}}\prod_D u_D(z|_{\partial D})
+             \equiv Z_q \pmod p . \label{eq:gadget}
+\end{equation}
+Here $z|_{\partial D}$ restricts the global assignment to the crossing ports of $D$. The crossing edges number at most $E$. The private edges number $\lceil N/\beta\rceil b=O(N+1)$, since $b=O(\log(N+2))$. A block predicate has arity at most $d\beta+b$ and polynomially many explicit entries. Subdivide every edge with a binary equality predicate. The two resulting copies of each edge have a unique consistent assignment for either original bit. This makes the graph bipartite, preserves its count, and at most doubles the wire count. The same construction permits parallel edges, disconnected networks and scalar blocks.
+
+\paragraph{Recovering the sign.}
+For each returned integer $C_{q,p}$, compute its residue modulo $p$. For fixed $q$, inner CRT on those residues reconstructs $Z_q$ as a nonnegative integer, since the product of the inner moduli exceeds its upper bound. Only now take $Z_q\bmod q$. Outer CRT recovers $Z$ as the centered representative because its modulus product exceeds $2^{H+1}$. Coprimality is required within each basis. A modulus may occur at both levels. Reducing the original signed entries directly modulo the inner $p$ would in general compute the wrong residues for $Z_q$.
+
+There are $O(H+1)$ outer moduli and $O(K+1)$ inner moduli per outer modulus. This gives at most $O((F+1)(N+1)^2)$ oracle calls. Using the classical estimate that the number of primes up to $u$ is $O(u/\log(u+2))$, the count is also $O((F+1)(N+1)^2/(\log(F+2)\log(N+2)))$. The product of all moduli \emph{within a single basis} has polynomial bit length, bounded by $m\lceil\log(m+1)\rceil$. Each answer has at most one more bit than the number of query wires. Generating queries, reading answers and reconstructing the output take polynomial bit time outside the oracle. All workspaces can be reused between calls. This proves Theorem~\ref{thm:reduction}.
+
+\paragraph{A signed example.}
+Take endpoint vectors $(35,-19)$ and $(-4,11)$, and middle matrix
+$\left(\begin{smallmatrix}5&-7\\9&13\end{smallmatrix}\right)$.
+The contraction is $-5428$. For the illustrative outer modulus $q=11$ the reduced endpoint vectors are $(2,3),(7,0)$ and the matrix rows are $(5,4),(9,2)$, giving $Z_{11}=259$. Group the left endpoint with the matrix. With inner moduli $5,7,13,17$ the counts \eqref{eq:gadget} are $4,0,77,21$ and the residues are $4,0,12,4$. Their modulus product $7735$ exceeds $2^2(11-1)^3=4000$. Reconstructing gives 259 and hence $6\bmod 11$, as required. These small bases illustrate the construction. The proof uses its uniform bases and may handle this small input by direct enumeration.
+
+\section{Conditional time and space}
+We use precisely Theorem D.1 (Boolean tensor contraction) in the pinned October 25 preprint \cite{oai}. Write $\mathcal L$ for the encoded input length to that theorem. Its parameters $C,A,b_0>0$ are fixed constants. For the specialization $\ell=1$, the ring is $\Z/2^{P_0}\Z$ and the input bounds are
+\[
+ s\ge2,\quad e\le Cs,\quad |V|\le\poly(s),\quad
+ D\le\lceil s^{9/10}\rceil,\quad 1\le P_0\le Cs.
+\]
+The uniform entry evaluator has time $(s+\mathcal L)^{b_0}2^{As^{9/10}}$ and space $(s+\mathcal L)^{b_0}$. Under these hypotheses the stated bit time is $\poly(s+\mathcal L)2^{O(s/\sqrt{\log s})}$ and bit space is polynomial in $s+\mathcal L$.
+
+\begin{corollary}\label{cor:weighted}
+Assuming Theorem D.1 of \cite{oai}, one can compute $Z$ exactly using $\poly(F)$ bits of space and deterministic bit time
+\[
+  \poly(F)\,2^{O((N+2)/\sqrt{\log(N+2)})}.
+\]
+\end{corollary}
+For a query with $e$ wires and maximum degree $D$, choose an integer $s$ at least $\max(2,N,e+1,\lceil D^{10/9}\rceil)$. Taking the smallest such integer gives $s=O(N+1)$, including cases with many isolated vertices. Set $P_0=e+1$. Then $e<s$, $P_0\le s$, $D\le s^{9/10}$ and $|V|=O(s)$. Thus one may take $C=1$ and fixed entry-evaluation constants for the explicit table lookup. Constants in the composed time bound depend on the fixed source arity and the constants of Theorem D.1. The oracle count is between zero and $2^e$, so the modular result at this precision gives the exact count. All tables are explicit, polynomially long and polynomial-time accessible. Serial invocation proves the bound. The external contraction theorem is a premise of this corollary. Theorem~\ref{thm:reduction} uses only elementary integer arithmetic and an exact counting oracle.
+
+\section{Circuit application}
+Consider an explicitly listed circuit of length $L$ over
+\[
+ H,T,T^\dagger,S,S^\dagger,X,Z,\mathrm{CNOT},\mathrm{CZ},
+ \mathrm{CS},\mathrm{SWAP},\mathrm{CH}.
+\]
+The input and requested output basis labels are explicit, or one designated output bit is specified for measurement on a given basis input. Let $G$ count two-qubit gates, $h$ count $H$ and $\mathrm{CH}$, and $\omega=e^{i\pi/4}$.
+\begin{corollary}\label{cor:circuit}
+Under the premise of Corollary~\ref{cor:weighted}, arbitrary basis amplitudes and a designated output-bit probability are exactly computable in $\poly(L)2^{O((G+2)/\sqrt{\log(G+2)})}$ bit time and $\poly(L)$ bits of space.
+\end{corollary}
+As in Tulsyan's circuit encoding \cite{tulsyan}, use $R=\Z[\omega]$ and track the factor $\sqrt{2}$ in the denominator for each $H$ or $\mathrm{CH}$. Multiplying the entire controlled-Hadamard matrix by $\sqrt{2}=\omega-\omega^3$ also clears its identity block. Combine every maximal one-qubit word before building the network. Its $2\times2$ numerator is computed over the fixed basis $1,\omega,\omega^2,\omega^3$ with $\omega^4=-1$. Multiplication by any gate numerator increases the maximum coefficient by at most a fixed factor, giving $O(L+1)$ bits per entry throughout. Detached wires are contracted against their basis boundaries separately. Boundary labels on idle wires contribute Kronecker deltas. If $G=0$ this suffices. Otherwise, at most $2G$ wires meet a two-qubit gate, and the number of word slots on them is at most $2G+2G$ (incidences plus active wires). Fix the input and output ports; the resulting network has $O(G+1)$ factors and wires.
+
+For one coordinate of a product of these ring entries, introduce an accumulator with four basis states. The tensor at factor $i$ uses the integer matrix of multiplication by its ring entry, with row and column labels encoded by two bits each. Pin the initial state to the basis unit and the final state to the desired coordinate. Summing intermediate labels gives that coefficient of the product, term by term even with negative coefficients. Each scalar query has at most eight ports per factor, $O(G+1)$ Boolean edges and polynomial encoding length. Four answers, detached factors and $\sqrt{2}^{\,h}$ recover the exact amplitude.
+
+For the probability of bit one contract $\langle x|C^\dagger P_1 C|x\rangle$, with a one-wire projector and identity on the remaining wires. The adjoint tensors are obtained by conjugate transposition in the same ring, including the adjoint of controlled-$S$. This doubles gate occurrences and adds one insertion. Fold local words at that insertion too, including a detached measured wire if present. The exact real result is $(a+b\sqrt2)/2^h$ since $R\cap\mathbb R=\Z[\sqrt2]$ (complex conjugation in the displayed basis gives this directly). All coefficients and boundary products have polynomial bit length in $L$. Thus the same resource bounds hold. A bounded-error language decision can use an exact sign comparison at $1/2$. General polynomial-size circuit families still allow superpolynomial simulation time.
+
+\paragraph{A depth consequence of earlier methods.}
+For one designated output of a depth-$d_0$ circuit with $n\ge1$ wires and disjoint gates in each layer, put $W=\min(n,2^{d_0})$, $R_0=1+d_0-\log W$ and $t=\sqrt{\log(W+2)}$. Backward pruning inspects at most $\min(2^r,W)$ relevant gates at reverse layer $r$, since each touches a currently relevant wire. Tracing a relevant wire backward retains its earlier segment, so all earlier wire sets lie in the final expanded set. The whole cone uses $O(WR_0)$ gates (sum the geometric part, then the plateau) and at most $W$ wires. The doubled circuit for the probability obeys these bounds up to constants. Idle wires outside the cone cancel by unitarity against the identity output. With $R_0\le t$, direct application of Corollary~\ref{cor:circuit} bounds the exponent by $O(WR_0/t)$, by monotonicity of $(x+2)/\sqrt{\log(x+2)}$ and evaluating at the upper bound. Otherwise order the pruned gates by layer, preserving the order on every wire, and bisect this chronological list until each leaf has at most $W\lceil\sqrt{\lceil\log(W+2)\rceil}\rceil$ gates. Every prefix has a frontier of at most $W$ wires. At a cut, sum over the $2^W$ intermediate basis strings and recursively multiply two amplitudes, as in Aaronson and Chen \cite{ac}. There are $O(1+\log(R_0/t))$ levels, and each leaf costs $\poly(L)2^{O(W)}$. Depth-first evaluation reuses space. All summands at a cut have the same denominator. If $B_j$ bounds the numerator coefficient bits after $j$ levels above the leaves, ring multiplication and at most $2^W$ additions give $B_{j+1}\le 2B_j+W+O(1)$. Leaf bit lengths are polynomial in $L$, and there are $O(\log(L+2))$ levels. For a gate-only leaf routine, expand $P_1=(I-Z)/2$ at the outset. This produces two ordinary amplitude tasks and a final scalar combination. If an adjoint gate is needed, $\mathrm{CS}^\dagger=\mathrm{CS}^3$ has constant overhead. Combining the two cases gives $\poly(L)2^{O(W\log(1+R_0/t))}$ time in polynomial space. Tulsyan's polynomial-space algorithm also supplies these leaves directly when one counts \emph{all} their gates. This consequence illustrates a use of the bound; the depth formula does not distinguish the two leaf algorithms.
+
+\section{Comparison and scope}
+Wang's weighted-CSP lemma \cite[Lemma~1 and Remark~2]{wang} already gives $\poly(F)2^{O(N/\sqrt{\log N})}$ at large $N$ for unrestricted binary integer weights at fixed arity and domain under a different counting premise; it uses clustering and CRT. Its polynomial-space alternative has a weaker time guarantee. Bhattacharjee \cite[Theorem~5.3 and Lemma~5.5]{deep} obtains polynomial space for bounded-scope weighted counting at fixed density, with a $(\log\log N)^2$ factor in the exponent at that density. In this comparison the fixed-density exponent is $O(N(\log\log N)^2/\sqrt{\log N})$ for large $N$. A bounded-arity network with $O(N)$ Boolean variables and factors can be padded to fixed density with pinned variables if necessary. Tulsyan \cite[Theorems~1.1--1.2]{tulsyan} gives a two-qubit-gate time exponent of the same order under a different premise for $\log L\le G^{0.9}$; the polynomial-space theorem under the Boolean contraction premise uses $s/\sqrt{\log s}$ with $s=\max(4G,h,4)$ in the exponent. Long, explicitly given one-qubit words are exactly the regime where $h$ can greatly exceed $G$.
+
+A separate inner counter on each factor can require $O(N\log N)$ wires with the same modulus sizes. Sharing one counter across a block reduces this upper bound to $O(N)$ while keeping the block truth table polynomial. The contribution here is the signed-to-unweighted reduction with simultaneous polynomial call count, linear wires per query and polynomially accessible logarithmic-arity tables. Its circuit consequence combines the two-qubit-gate exponent with polynomial bit space. The established comparisons concern upper bounds. The finite example checks arithmetic; the fast contraction algorithm is neither implemented nor independently verified here.
+
+\begin{thebibliography}{9}
+\bibitem{cfmv} S. Chakraborty, D. Fried, K. S. Meel and M. Y. Vardi.
+\href{https://www.cs.rice.edu/~vardi/papers/ijcai15.pdf}{From weighted to unweighted model counting}. IJCAI, 2015, \S3.
+\bibitem{oai} OpenAI. \href{https://github.com/openai/math/tree/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a/preprints/The-Exponential-Time-Hypothesis-is-False-October-25-2026}{The Exponential Time Hypothesis is false}. October 25, 2026. Appendix D, Theorem D.1, revision \texttt{7ef5c0c}.
+\bibitem{tulsyan} V. Tulsyan. \href{https://hexagonmath.org/pdf/2611.00090v1}{Exact amplitudes of sparse quantum circuits in subexponential time, assuming the new \#SAT algorithms}. November 4, 2026, v1.
+\bibitem{wang} Z. Wang. \href{https://optimization-online.org/wp-content/uploads/2026/11/main-1.pdf}{Exact equilibrium analysis of sparse network games in subexponential time}. Optimization Online, November 2026.
+\bibitem{deep} D. Bhattacharjee. \href{https://hexagonmath.org/pdf/2610.00594v1}{Subexponential weighted counting and exact optimisation}. October 27, 2026, v1.
+\bibitem{ac} S. Aaronson and L. Chen. \href{https://arxiv.org/abs/1612.05903}{Complexity-theoretic foundations of quantum supremacy experiments}. arXiv:1612.05903, 2016.
+\end{thebibliography}
+\end{document}
